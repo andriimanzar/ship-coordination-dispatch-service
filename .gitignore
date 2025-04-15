@@ -1,0 +1,14 @@
+.idea
+*.iws
+*.iml
+*.ipr
+
+
+*.log*
+*.class
+*.log
+*.idea
+*.jar
+*.lst
+target
+targetenv
