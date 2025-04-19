@@ -1,9 +1,11 @@
 package com.challenge.ship.coordination.dispatchservice.validation;
 
 import java.time.Instant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class ShipPositionRequestValidator {
 
   public void validateCoordinates(int x, int y) {
@@ -14,7 +16,7 @@ public class ShipPositionRequestValidator {
 
   public void validateTimeIsNotGreaterThanCurrent(int timeToValidate) {
     long currTime = Instant.now().getEpochSecond();
-    if (currTime > timeToValidate) {
+    if (currTime < timeToValidate) {
       throw new IllegalArgumentException("time should not be greater that the current one");
     }
   }

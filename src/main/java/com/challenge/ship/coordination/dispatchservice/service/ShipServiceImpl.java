@@ -76,9 +76,4 @@ public class ShipServiceImpl implements ShipService {
 
     return position;
   }
-
-  @Override
-  public void flushData() {
-    shipRepository.clear();
-  }
 }

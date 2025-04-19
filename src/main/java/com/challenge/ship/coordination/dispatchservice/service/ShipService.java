@@ -14,6 +14,4 @@ public interface ShipService {
   ShipPosition submitPosition(String shipId,
       ShipPositionRequest positionRequest);
 
-  void flushData();
-
 }

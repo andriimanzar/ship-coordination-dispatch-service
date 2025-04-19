@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+    image: "cfabb5733315"
+    container_name: app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:8.0-rc1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
