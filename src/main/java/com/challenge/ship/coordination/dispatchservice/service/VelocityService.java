@@ -17,16 +17,20 @@ public class VelocityService {
     VelocityVector velocityVector = this.calculateVelocityVector(prev, curr);
 
     double speed = Math.hypot(velocityVector.vx(), velocityVector.vy());
+
     if (speed < MIN_SPEED || speed > MAX_SPEED) {
       throw new IllegalArgumentException("speed is out of bounds (0-100 cells/second)");
     }
+
     return (int) Math.round(speed);
   }
 
   public VelocityVector calculateVelocityVector(TemporalPosition prev, TemporalPosition curr) {
     int timeDelta = curr.time() - prev.time();
-    if (timeDelta <= 0) {
+    if (timeDelta == 0) {
       return new VelocityVector(0, 0);
+    } else if (timeDelta < 0) {
+      throw new IllegalArgumentException("time delta is negative");
     }
 
     double vx = ((double) (curr.x() - prev.x())) / timeDelta;

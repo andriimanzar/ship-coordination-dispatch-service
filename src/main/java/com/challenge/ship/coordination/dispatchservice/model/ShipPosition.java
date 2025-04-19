@@ -4,7 +4,7 @@ public record ShipPosition(int time, int x, int y, int speed, ThreatStatus statu
     implements TemporalPosition {
 
   public ShipPosition(TemporalPosition temporalPosition, int speed, ThreatStatus status) {
-    this(temporalPosition.x(), temporalPosition.y(), temporalPosition.time(),
+    this(temporalPosition.time(), temporalPosition.x(), temporalPosition.y(),
         speed, status);
   }
 }

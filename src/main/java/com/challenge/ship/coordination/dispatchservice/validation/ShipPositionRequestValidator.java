@@ -1,11 +1,9 @@
 package com.challenge.ship.coordination.dispatchservice.validation;
 
 import java.time.Instant;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class ShipPositionRequestValidator {
 
   public void validateCoordinates(int x, int y) {
@@ -24,7 +22,8 @@ public class ShipPositionRequestValidator {
   public void validateTimeIsGreaterThanThePreviousReceived(int timeToValidate,
       int previousReceivedTime) {
     if (timeToValidate <= previousReceivedTime) {
-      throw new IllegalArgumentException("time should always be greater than the previous received");
+      throw new IllegalArgumentException(
+          "time should always be greater than the previous received");
     }
   }
 }

@@ -57,14 +57,12 @@ public class ShipServiceImpl implements ShipService {
 
     List<ShipPosition> positionsHistory = shipRepository.getShipPositions(shipId)
         .orElse(new ArrayList<>());
+
+    int speed = 0;
     if (!positionsHistory.isEmpty()) {
       shipPositionRequestValidator.validateTimeIsGreaterThanThePreviousReceived(
           positionRequest.time(),
           positionsHistory.getLast().time());
-    }
-
-    int speed = 0;
-    if (positionsHistory.size() > 1) {
       speed = velocityService.calculateSpeed(positionsHistory.getLast(),
           positionRequest);
     }
