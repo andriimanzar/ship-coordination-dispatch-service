@@ -5,9 +5,12 @@ import com.challenge.ship.coordination.dispatchservice.dto.ShipHistoryPosition;
 import com.challenge.ship.coordination.dispatchservice.dto.ShipHistoryResponse;
 import com.challenge.ship.coordination.dispatchservice.dto.ShipPositionRequest;
 import com.challenge.ship.coordination.dispatchservice.dto.ShipStatusResponse;
+import com.challenge.ship.coordination.dispatchservice.exception.ShipNotFoundException;
 import com.challenge.ship.coordination.dispatchservice.model.ShipPosition;
 import com.challenge.ship.coordination.dispatchservice.model.ThreatStatus;
 import com.challenge.ship.coordination.dispatchservice.repository.ShipRepository;
+import com.challenge.ship.coordination.dispatchservice.validation.ShipPositionRequestValidator;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class ShipServiceImpl implements ShipService {
 
   private final ShipRepository shipRepository;
+  private final ShipPositionRequestValidator shipPositionRequestValidator;
   private final VelocityService velocityService;
   private final CollisionDetectorService collisionDetectorService;
 
@@ -33,36 +37,42 @@ public class ShipServiceImpl implements ShipService {
   }
 
   @Override
-  public ShipHistoryResponse getShipPositionHistory(String id) {
-    List<ShipHistoryPosition> historyPositions = shipRepository.getShipPositions(id)
+  public ShipHistoryResponse getShipPositionHistory(String shipId) {
+    List<ShipPosition> shipPositions = shipRepository.getShipPositions(shipId)
+        .orElseThrow(() -> new ShipNotFoundException("ship was not found"));
+
+    List<ShipHistoryPosition> historyPositions = shipPositions
         .stream()
         .map(ShipHistoryPosition::new)
         .toList();
 
-    return new ShipHistoryResponse(id, historyPositions);
+    return new ShipHistoryResponse(shipId, historyPositions);
   }
 
   @Override
   public ShipPosition submitPosition(String shipId,
       ShipPositionRequest positionRequest) {
-    List<ShipPosition> positionsHistory = shipRepository.getShipPositions(shipId);
-    if (!positionsHistory.isEmpty() &&
-        positionRequest.time() <=
-            positionsHistory.get(positionsHistory.size() - 1).time()) {
-      throw new IllegalArgumentException("time out of range");
+    shipPositionRequestValidator.validateCoordinates(positionRequest.x(), positionRequest.y());
+    shipPositionRequestValidator.validateTimeIsNotGreaterThanCurrent(positionRequest.time());
+
+    List<ShipPosition> positionsHistory = shipRepository.getShipPositions(shipId)
+        .orElse(new ArrayList<>());
+    if (!positionsHistory.isEmpty()) {
+      shipPositionRequestValidator.validateTimeIsGreaterThanThePreviousReceived(
+          positionRequest.time(),
+          positionsHistory.getLast().time());
     }
 
     int speed = 0;
     if (positionsHistory.size() > 1) {
-      speed = velocityService.calculateSpeed(positionsHistory.get(positionsHistory.size() - 1),
+      speed = velocityService.calculateSpeed(positionsHistory.getLast(),
           positionRequest);
     }
 
     ThreatStatus threatStatus = collisionDetectorService.assesThreat(shipId, positionRequest);
-
     ShipPosition position = new ShipPosition(positionRequest, speed, threatStatus);
 
-    shipRepository.addPosition(shipId, position);
+    shipRepository.submitPosition(shipId, position);
 
     return position;
   }

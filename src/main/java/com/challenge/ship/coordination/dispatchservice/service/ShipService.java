@@ -9,7 +9,7 @@ public interface ShipService {
 
   AllShipsStatusResponse getCurrentFleetStatus();
 
-  ShipHistoryResponse getShipPositionHistory(String id);
+  ShipHistoryResponse getShipPositionHistory(String shipId);
 
   ShipPosition submitPosition(String shipId,
       ShipPositionRequest positionRequest);

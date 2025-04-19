@@ -9,11 +9,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class VelocityService {
 
+  private static final int MIN_SPEED = 0;
+  private static final int MAX_SPEED = 100;
+
   public int calculateSpeed(TemporalPosition prev,
       TemporalPosition curr) {
     VelocityVector velocityVector = this.calculateVelocityVector(prev, curr);
 
     double speed = Math.hypot(velocityVector.vx(), velocityVector.vy());
+    if (speed < MIN_SPEED || speed > MAX_SPEED) {
+      throw new IllegalArgumentException("speed is out of bounds (0-100 cells/second)");
+    }
     return (int) Math.round(speed);
   }
 

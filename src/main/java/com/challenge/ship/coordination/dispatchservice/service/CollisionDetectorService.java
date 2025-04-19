@@ -5,6 +5,7 @@ import com.challenge.ship.coordination.dispatchservice.model.TemporalPosition;
 import com.challenge.ship.coordination.dispatchservice.model.ThreatStatus;
 import com.challenge.ship.coordination.dispatchservice.model.VelocityVector;
 import com.challenge.ship.coordination.dispatchservice.repository.ShipRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,9 @@ public class CollisionDetectorService {
   private final VelocityService velocityService;
 
   public ThreatStatus assesThreat(String shipId, TemporalPosition curr) {
-    List<ShipPosition> currentHistory = shipRepository.getShipPositions(shipId);
-    if (currentHistory == null || currentHistory.size() < 2) {
+    List<ShipPosition> currentHistory = shipRepository.getShipPositions(shipId)
+        .orElse(new ArrayList<>());
+    if (currentHistory.size() < 2) {
       return ThreatStatus.GREEN;
     }
 
