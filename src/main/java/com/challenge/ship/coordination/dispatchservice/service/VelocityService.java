@@ -26,7 +26,7 @@ public class VelocityService {
   }
 
   public VelocityVector calculateVelocityVector(TemporalPosition prev, TemporalPosition curr) {
-    int timeDelta = curr.time() - prev.time();
+    long timeDelta = curr.time() - prev.time();
     if (timeDelta == 0) {
       return new VelocityVector(0, 0);
     } else if (timeDelta < 0) {

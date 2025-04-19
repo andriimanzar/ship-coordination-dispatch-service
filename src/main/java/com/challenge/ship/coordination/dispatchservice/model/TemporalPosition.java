@@ -6,6 +6,6 @@ public interface TemporalPosition {
 
   int y();
 
-  int time();
+  long time();
 
 }

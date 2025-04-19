@@ -12,15 +12,15 @@ public class ShipPositionRequestValidator {
     }
   }
 
-  public void validateTimeIsNotGreaterThanCurrent(int timeToValidate) {
+  public void validateTimeIsNotGreaterThanCurrent(long timeToValidate) {
     long currTime = Instant.now().getEpochSecond();
     if (currTime < timeToValidate) {
       throw new IllegalArgumentException("time should not be greater that the current one");
     }
   }
 
-  public void validateTimeIsGreaterThanThePreviousReceived(int timeToValidate,
-      int previousReceivedTime) {
+  public void validateTimeIsGreaterThanThePreviousReceived(long timeToValidate,
+      long previousReceivedTime) {
     if (timeToValidate <= previousReceivedTime) {
       throw new IllegalArgumentException(
           "time should always be greater than the previous received");

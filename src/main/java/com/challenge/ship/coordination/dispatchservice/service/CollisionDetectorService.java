@@ -6,8 +6,10 @@ import com.challenge.ship.coordination.dispatchservice.model.ThreatStatus;
 import com.challenge.ship.coordination.dispatchservice.model.VelocityVector;
 import com.challenge.ship.coordination.dispatchservice.repository.ShipRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,49 +20,61 @@ public class CollisionDetectorService {
   private final ShipRepository shipRepository;
   private final VelocityService velocityService;
 
-  public ThreatStatus assesThreat(String shipId, TemporalPosition curr) {
+  public ThreatStatus assesThreat(String shipId, TemporalPosition currPos) {
     List<ShipPosition> currentHistory = shipRepository.getShipPositions(shipId)
         .orElse(new ArrayList<>());
-    if (currentHistory.size() < 2) {
-      return ThreatStatus.GREEN;
-    }
 
-    VelocityVector ownVelocityVector = velocityService.
-        calculateVelocityVector(currentHistory.get(currentHistory.size() - 2), curr);
+    VelocityVector ownVelocityVector = !currentHistory.isEmpty()
+        ? velocityService.calculateVelocityVector(currentHistory.getLast(), currPos)
+        : new VelocityVector(0, 0);
 
     ThreatStatus maxThreat = ThreatStatus.GREEN;
-    for (Map.Entry<String, List<ShipPosition>> shipHistory : shipRepository.getAllShipsPositions()
-        .entrySet()) {
-      boolean isTargetShip = shipHistory.getKey().equals(shipId);
 
-      List<ShipPosition> otherHistory = shipHistory.getValue();
-      boolean hasSufficientPositionHistory = shipHistory.getValue().size() >= 2;
-      if (isTargetShip || !hasSufficientPositionHistory) {
+    for (Map.Entry<String, List<ShipPosition>> entry : shipRepository.getAllShipsPositions()
+        .entrySet()) {
+      String otherShipId = entry.getKey();
+      List<ShipPosition> otherHistory = entry.getValue();
+      if (otherShipId.equals(shipId) || otherHistory.isEmpty()) {
         continue;
       }
 
-      ShipPosition otherLast = otherHistory.getLast();
-      VelocityVector otherVelocityVector = velocityService.calculateVelocityVector(
-          otherHistory.get(otherHistory.size() - 2),
-          otherLast);
+      Optional<ShipPosition> otherPositionBeforeCurrOpt = this.findLatestPositionBeforeTime(
+          otherHistory, currPos.time());
+
+      if (otherPositionBeforeCurrOpt.isEmpty()) {
+        continue;
+      }
+
+      ShipPosition otherPositionBeforeCurr = otherPositionBeforeCurrOpt.get();
+      VelocityVector otherVelocityVector = otherHistory.size() >= 2
+          ? velocityService.calculateVelocityVector(
+          otherHistory.get(otherHistory.size() - 2), otherPositionBeforeCurr)
+          : new VelocityVector(0, 0);
 
       for (int t = 1; t <= 60; t++) {
-        double predictedCurrX = curr.x() + ownVelocityVector.vx() * t;
-        double predictedCurrY = curr.y() + ownVelocityVector.vy() * t;
+        double predictedCurrX = currPos.x() + ownVelocityVector.vx() * t;
+        double predictedCurrY = currPos.y() + ownVelocityVector.vy() * t;
 
-        double predictedOtherX = otherLast.x() + otherVelocityVector.vx() * t;
-        double predictedOtherY = otherLast.y() + otherVelocityVector.vy() * t;
+        double predictedOtherX = otherPositionBeforeCurr.x() + otherVelocityVector.vx() * t;
+        double predictedOtherY = otherPositionBeforeCurr.y() + otherVelocityVector.vy() * t;
 
-        double predictedDistance = Math.hypot(predictedCurrX - predictedOtherX,
+        double distance = Math.hypot(predictedCurrX - predictedOtherX,
             predictedCurrY - predictedOtherY);
 
-        if (predictedDistance < 1.0) {
+        if (distance < 1.0) {
           return ThreatStatus.RED;
-        } else if (predictedDistance == 1.0 && maxThreat == ThreatStatus.GREEN) {
+        } else if (distance == 1.0 && maxThreat == ThreatStatus.GREEN) {
           maxThreat = ThreatStatus.YELLOW;
         }
       }
     }
+
     return maxThreat;
+  }
+
+  private Optional<ShipPosition> findLatestPositionBeforeTime(List<ShipPosition> positions, long time) {
+    return positions.stream()
+        .filter(p -> p.time() <= time)
+        .max(Comparator.comparingLong(ShipPosition::time));
   }
 }

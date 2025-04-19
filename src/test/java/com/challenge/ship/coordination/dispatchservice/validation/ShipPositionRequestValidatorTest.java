@@ -55,16 +55,14 @@ class ShipPositionRequestValidatorTest {
   @MethodSource("validateTimeIsNotGreaterThanCurrentTestData")
   @Order(2)
   void validateTimeIsNotGreaterThanCurrent(long inputTime, boolean shouldThrow) {
-    int timeToValidate = (int) inputTime;
-
     if (shouldThrow) {
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class,
-          () -> validator.validateTimeIsNotGreaterThanCurrent(timeToValidate)
+          () -> validator.validateTimeIsNotGreaterThanCurrent(inputTime)
       );
       assertEquals("time should not be greater that the current one", exception.getMessage());
     } else {
-      assertDoesNotThrow(() -> validator.validateTimeIsNotGreaterThanCurrent(timeToValidate));
+      assertDoesNotThrow(() -> validator.validateTimeIsNotGreaterThanCurrent(inputTime));
     }
   }
 
@@ -76,7 +74,7 @@ class ShipPositionRequestValidatorTest {
       "499, 500, true"
   })
   @Order(3)
-  void validateTimeIsGreaterThanThePreviousReceived(int timeToValidate, int previousReceivedTime,
+  void validateTimeIsGreaterThanThePreviousReceived(long timeToValidate, long previousReceivedTime,
       boolean shouldThrowException) {
     if (shouldThrowException) {
       IllegalArgumentException exception = assertThrows(
