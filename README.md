@@ -2,7 +2,7 @@
 
 ## Overview
 
-This service tracks ship positions and calculates collision risks. The system analyzes trajectories and speeds to provide safety warnings using a color-coded risk assessment system.
+This service was developed as part of a back-end challenge. It tracks ship positions and calculates collision risks. The system analyzes trajectories and speeds to provide safety warnings using a color-coded risk assessment system.
 
 ## Features
 
